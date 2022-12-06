@@ -19,7 +19,7 @@
 	});
 
 var instructions = File.ReadAllLines("data.txt")
-	.SkipWhile(x => x.IndexOf("move") == -1)
+	.SkipWhile(x => !x.StartsWith("move"))
 	.Select(x => x
 		.Replace("move ", string.Empty)
 		.Replace(" from", string.Empty)
