@@ -20,12 +20,8 @@
 
 var instructions = File.ReadAllLines("data.txt")
 	.SkipWhile(x => !x.StartsWith("move"))
-	.Select(x => x
-		.Replace("move ", string.Empty)
-		.Replace(" from", string.Empty)
-		.Replace(" to", string.Empty)
-		.Split(" ")
-		.Select(x => int.Parse(x))
+	.Select(x => System.Text.RegularExpressions.Regex.Matches(x, @"\d+")
+		.Select(x => int.Parse(x.Value))
 		.ToList())
 	.Select(x => new Instruction(x[0], x[1] - 1, x[2] - 1));
 
