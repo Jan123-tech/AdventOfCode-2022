@@ -1,13 +1,13 @@
 ﻿var stacks = File.ReadAllLines("data.txt")
 	.TakeWhile(x => x.IndexOf("[") != -1)
-	.SelectMany(x => x
+	.Select(x => x
 		.Chunk(4)
 		.Select(x => new string(x))
 		.Select((x, colIndex) =>
 			(colIndex, crate: string.Join(string.Empty, x.Split('[', ']')).Trim()))
-		.Where(x => x.crate != string.Empty)
-		.Reverse())
+		.Where(x => x.crate != string.Empty))
 	.Reverse()
+	.SelectMany(x => x)
 	.Aggregate(new List<Stack<string>>(), (list, x) =>
 	{
 		if (list.Count() < x.colIndex + 1)
