@@ -13,7 +13,7 @@ foreach (var c in File.ReadAllText("data.txt"))
 	if (b.Count() > bSize)
 		b.Dequeue();
 
-	if (b.GroupBy(x => x).Count() == bSize)
+	if (b.Distinct().Count() == bSize)
 		break;
 }
 
