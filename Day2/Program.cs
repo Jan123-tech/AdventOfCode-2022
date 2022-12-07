@@ -2,20 +2,9 @@
 Result ToResult(char s) => s == 'X' ? Result.Loss : s == 'Y' ? Result.Draw : Result.Win;
 
 Play PlayForResult(Play play, Result result) =>
-    result == Result.Draw ? play : GetDecisivePlay(play, result);
-
-Play GetDecisivePlay(Play play, Result result)
-{
-    if (result == Result.Draw)
-        throw new ArgumentException();
-
-    var playInt = (int) play;
-    var inc = result == Result.Win ? 1 : 2;
-    var newPlay = playInt + inc;
-    var norm = newPlay % 3;
-
-    return (Play) norm;
-}
+    result == Result.Draw ?
+        play :
+        (Play)(((int) play + (result == Result.Win ? 1 : 2)) % 3);
 
 int Score(Play play1, Play play2) =>
     (int) play2 + 1 + (int) GetResult(play1, play2);
@@ -36,5 +25,3 @@ Console.WriteLine(sum);
 
 enum Play { Rock = 0, Paper = 1, Scissors = 2 }
 enum Result { Loss = 0, Draw = 3, Win = 6 }
-
-//10835
