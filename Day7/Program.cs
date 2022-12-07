@@ -10,15 +10,15 @@ foreach (var c in commands)
 {
 	if (c.StartsWith("cd"))
 	{
-		var val = c.Substring(c.IndexOf(" ") + 1);
-		dir = val == ".." ?
+		var arg = c.Substring(c.IndexOf(" ") + 1);
+		dir = arg == ".." ?
 			dir.Parent! :
-			(Directory) dir.Items.First(x => x.Name == val);
+			dir.Directories.First(x => x.Name == arg);
 	}
 	else
 	{
-		var val = c.Substring(c.IndexOf('\n') + 1);
-		foreach (var i in val.Split('\n'))
+		var items = c.Substring(c.IndexOf('\n') + 1);
+		foreach (var i in items.Split('\n'))
 		{
 			var name = i.Substring(i.LastIndexOf(" ") + 1);
 			dir.Items.Add(i.StartsWith("dir") ?
@@ -35,7 +35,7 @@ var spaceRemaining = totalSpace - spaceUsed; // 23447691
 var spaceToFree = spaceRequired - spaceRemaining; // 6552309
 
 Console.WriteLine(root.AllDirectories
-	.Where(d => d.Size >= spaceToFree)
+	.Where(x => x.Size >= spaceToFree)
 	.OrderBy(x => x.Size)
 	.First()
 	.Size);
@@ -69,7 +69,7 @@ class Directory : Item
 
 	public Directory? Parent { get; } 
 	public IList<Item> Items { get; } = new List<Item>();
+	public IEnumerable<Directory> Directories => Items.OfType<Directory>();
 	public IEnumerable<Directory> AllDirectories =>
-		Items.OfType<Directory>()
-			.SelectMany(x => new [] { x }.Concat(x.AllDirectories));
+		Directories.SelectMany(x => new [] { x }.Concat(x.AllDirectories));
 }
