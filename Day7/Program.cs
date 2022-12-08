@@ -62,10 +62,7 @@ class Directory : Item
 	public Directory(string name, Directory? parent) : base(name) =>
 		Parent = parent;
 
-	public override int Size
-	{
-		get => Items.Sum(x => x.Size);
-	}
+	public override int Size => Items.Sum(x => x.Size);
 
 	public Directory? Parent { get; } 
 	public IList<Item> Items { get; } = new List<Item>();
