@@ -1,11 +1,12 @@
 ﻿var moves = File.ReadAllLines("data.txt")
 	.Select(x => GetMove(x.First(),
-		int.Parse(x.Substring(x.LastIndexOf(" ") + 1))));
+		int.Parse(x.Substring(x.LastIndexOf(" ") + 1))))
+	.SelectMany(x => Enumerable.Range(1, x.iterations).Select(x0 => x.vector));
 
 var nodes = Enumerable.Range(1, 10).Select(x => new Position(0, 0)).ToArray();
 var positions = new List<Position>();
 
-foreach (var v in moves.SelectMany(x => Enumerable.Range(1, x.iterations).Select(x0 => x.vector)))
+foreach (var v in moves)
 {
 		nodes = MoveTail(new [] { nodes[0].Move(v) }.Concat(nodes.Skip(1)).ToArray());
 		positions.Add(nodes[nodes.Length-1]);
