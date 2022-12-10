@@ -7,35 +7,41 @@ var positions = new List<Position>();
 
 foreach (var v in moves.SelectMany(x => Enumerable.Range(1, x.iterations).Select(x0 => x.vector)))
 {
-		nodes[0] = nodes[0].Move(v);
-		MoveTail();
-		Output();
-		positions.Add(nodes.Last());
+		nodes = MoveTail(new [] { nodes[0].Move(v) }.Concat(nodes.Skip(1)).ToArray());
+		positions.Add(nodes[nodes.Length-1]);
+		//Output(nodes);
 }
 
 Console.WriteLine(positions.Distinct().Count());
 
-void MoveTail()
+static Position[] MoveTail(Position[] nodes)
 {
-	for (var i = 0; i < nodes.Length - 1; i++)
-	{
-		var h = nodes[i];
-		var t = nodes[i+1];
+	if (nodes.Length == 1)
+		return nodes;
 
-		var xDist = h.x - t.x;
-		var yDist = h.y - t.y;
-		var dist = Math.Sqrt(Math.Pow(xDist, 2) + Math.Pow(yDist, 2));
+	var h = nodes[0];
+	var t = nodes[1];
 
-		if (dist > 1)
-		{
-			var distanceToMakeUp = dist - 1;
-			var sin = yDist / dist;
-			var cos = xDist / dist;
-			var y = distanceToMakeUp * sin;
-			var x = distanceToMakeUp * cos;
-			nodes[i+1] = t.Move(new Vector((int)Math.Round(x, 0), (int)Math.Round(y, 0)));
-		}
-	}
+	var xDist = h.x - t.x;
+	var yDist = h.y - t.y;
+	var dist = Math.Sqrt(Math.Pow(xDist, 2) + Math.Pow(yDist, 2));
+
+	return new [] { h }.Concat(
+			MoveTail(new [] { dist > 1 ? CalculateNewNode() : t }
+				.Concat(nodes.Skip(2))
+					.ToArray()))
+						.ToArray();
+
+	Position CalculateNewNode()
+  {
+    var distanceToMakeUp = dist - 1;
+    var sin = yDist / dist;
+    var cos = xDist / dist;
+    var y = distanceToMakeUp * sin;
+    var x = distanceToMakeUp * cos;
+    var newNode = t.Move(new Vector((int)Math.Round(x, 0), (int)Math.Round(y, 0)));
+    return newNode;
+  }
 }
 	
 Move GetMove(char c, int iterations) => c switch
@@ -47,19 +53,18 @@ Move GetMove(char c, int iterations) => c switch
 		_ => throw new ArgumentException()
 };
 
-void Output()
+void Output(Position[] nodes)
 {
 		var sb = new System.Text.StringBuilder();
-		Display(sb);
+		Display(sb, nodes);
 		Console.Clear();
 		Console.WriteLine(sb);
 		Console.ReadKey();
 }
 	
-void Display(System.Text.StringBuilder sb)
+void Display(System.Text.StringBuilder sb, Position[] nodes)
 {
 	int cols = 50, rows = 30;
-
 	for (var j = rows; j >= -rows; j--)
 	{
 		for (var i = -cols; i < cols; i++)
