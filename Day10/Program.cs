@@ -31,8 +31,7 @@ var cycles = agg.history.SelectMany(x => x.group.Select(x0 => (cycle: x0.cycle, 
 var output = cycles.Aggregate(new System.Text.StringBuilder(), (sb, c) =>
 {
 	var position = c.cycle % 40;
-	var pixel = position - 1;
-	sb.Append(new [] { pixel - 1, pixel, pixel + 1 }.Contains(c.reg) ? "#" : ".");
+	sb.Append(c.reg >= position - 2 && c.reg <= position ? "#" : ".");
 	if (position == 0)
 	{
 		sb.Append("\n");
