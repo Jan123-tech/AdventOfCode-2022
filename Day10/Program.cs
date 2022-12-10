@@ -1,4 +1,5 @@
-﻿var operations = File.ReadAllLines("data.txt")
+﻿// Part 1
+var operations = File.ReadAllLines("data.txt")
 	.Aggregate(new List<IOp>(), (ops, op) =>
 	{
 		var pair = op.Split(" ", StringSplitOptions.RemoveEmptyEntries);
@@ -23,6 +24,23 @@ var signalStrengths = Enumerable.Range(0, 6).Select(x => x * 40 + 20)
 	.Select(cycle => agg.history.First(x => x.group.Where(x0 => x0.cycle == cycle).Any()).reg * cycle);
 
 Console.WriteLine(signalStrengths.Sum());
+
+// Part 2
+var cycles = agg.history.SelectMany(x => x.group.Select(x0 => (cycle: x0.cycle, reg: x.reg)));
+
+var output = cycles.Aggregate(new System.Text.StringBuilder(), (sb, c) =>
+{
+	var position = c.cycle % 40;
+	var pixel = position - 1;
+	sb.Append(new [] { pixel - 1, pixel, pixel + 1 }.Contains(c.reg) ? "#" : ".");
+	if (position == 0)
+	{
+		sb.Append("\n");
+	}
+	return sb;
+});
+
+Console.WriteLine(output);
 
 interface IOp
 {
