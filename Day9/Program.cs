@@ -40,7 +40,8 @@ static Position[] MoveTail(Position[] nodes)
     var cos = xDist / dist;
     var y = distanceToMakeUp * sin;
     var x = distanceToMakeUp * cos;
-    var newNode = t.Move(new Vector((int)Math.Round(x, 0), (int)Math.Round(y, 0)));
+		var v = new Vector((int) Math.Round(x, 0), (int) Math.Round(y, 0));
+    var newNode = t.Move(v);
     return newNode;
   }
 }
