@@ -28,12 +28,12 @@ static Position[] MoveTail(Position[] nodes)
 	var dist = Math.Sqrt(Math.Pow(xDist, 2) + Math.Pow(yDist, 2));
 
 	return new [] { h }.Concat(
-			MoveTail(new [] { dist > 1 ? CalculateNewNode() : t }
+			MoveTail(new [] { dist > 1 ? CalculatePosition() : t }
 				.Concat(nodes.Skip(2))
 					.ToArray()))
 						.ToArray();
 
-	Position CalculateNewNode()
+	Position CalculatePosition()
   {
     var distanceToMakeUp = dist - 1;
     var sin = yDist / dist;
