@@ -10,7 +10,7 @@ foreach (var v in moves)
 {
 		nodes = MoveTail(new [] { nodes[0].Move(v) }.Concat(nodes.Skip(1)).ToArray());
 		positions.Add(nodes[nodes.Length-1]);
-		//Output(nodes);
+		//Output(nodes, positions);
 }
 
 Console.WriteLine(positions.Distinct().Count());
@@ -54,16 +54,16 @@ Move GetMove(char c, int iterations) => c switch
 		_ => throw new ArgumentException()
 };
 
-void Output(Position[] nodes)
+void Output(Position[] nodes, List<Position> positions)
 {
 		var sb = new System.Text.StringBuilder();
-		Display(sb, nodes);
+		Display(sb, nodes, positions);
 		Console.Clear();
 		Console.WriteLine(sb);
 		Console.ReadKey();
 }
 	
-void Display(System.Text.StringBuilder sb, Position[] nodes)
+void Display(System.Text.StringBuilder sb, Position[] nodes, List<Position> positions)
 {
 	int cols = 50, rows = 30;
 	for (var j = rows; j >= -rows; j--)
@@ -72,16 +72,15 @@ void Display(System.Text.StringBuilder sb, Position[] nodes)
 		{
 			var p = new Position(i, j);
 			string? c = null;
-			for (int a = nodes.Length - 1; a > 0; a--)
+			for (int a = nodes.Length - 1; a >= 0; a--)
 			{
-				if (nodes[a] == p) c = a.ToString();
+				if (nodes[a] == p) c = a == 0 ? "H" : a.ToString();
 			}
-			c = c ?? (nodes?[0] == p ? "H" : j == 0 && i == 0 ? "s" : ".");
+			c = c ?? (j == 0 && i == 0 ? "s" : positions.Contains(p) ? "#" : ".");
 			sb.Append(c);
 		}
 		sb.Append("\n");
 	}
-	sb.Append("\n");
 }
 
 record Vector(int x, int y);
