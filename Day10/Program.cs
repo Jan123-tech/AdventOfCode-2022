@@ -26,18 +26,17 @@ var signalStrengths = Enumerable.Range(0, 6).Select(x => x * 40 + 20)
 Console.WriteLine(signalStrengths.Sum());
 
 // Part 2
-var cycles = agg.history.SelectMany(x => x.group.Select(x0 => (cycle: x0.cycle, reg: x.reg)));
-
-var output = cycles.Aggregate(new System.Text.StringBuilder(), (sb, c) =>
-{
-	var position = c.cycle % 40;
-	sb.Append(c.reg >= position - 2 && c.reg <= position ? "#" : ".");
-	if (position == 0)
+var output = agg.history.SelectMany(x => x.group.Select(x0 => (cycle: x0.cycle, reg: x.reg)))
+	.Aggregate(new System.Text.StringBuilder(), (sb, c) =>
 	{
-		sb.Append("\n");
-	}
-	return sb;
-});
+		var position = c.cycle % 40;
+		sb.Append(c.reg >= position - 2 && c.reg <= position ? "#" : ".");
+		if (position == 0)
+		{
+			sb.Append("\n");
+		}
+		return sb;
+	});
 
 Console.WriteLine(output);
 
