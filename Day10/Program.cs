@@ -1,44 +1,47 @@
 ﻿// Part 1
-var operations = File.ReadAllLines("data.txt")
+var ops = File.ReadAllLines("data.txt")
 	.Aggregate(new List<IOp>(), (ops, op) =>
-	{
-		var pair = op.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-		ops.Add(pair.First() switch
-		{
-			"noop" => new NoOp(),
-			"addx" => new Add(int.Parse(pair.Last())),
-			_ => throw new ArgumentException()
-		});
-		return ops;
-	});
+		ops.Concat(new [] { CreateOp(op) }).ToList());
 
-var ops = operations.SelectMany(x => Enumerable.Range(1, x.Cylces).Select(x0 => x))
+var opGps = ops.SelectMany(x => Enumerable.Range(1, x.Cylces).Select(x0 => x))
 	.Select((x, i) => (op: x, cycle: i + 1))
 	.GroupBy(x => x.op);
 
-var agg = ops.Aggregate(
+var agg = opGps.Aggregate(
 	(reg: 1, history: new List<(int reg, IGrouping<IOp, (IOp op, int cycle)> group)>()), (agg, gOp) =>
 			(gOp.Key.Operate(agg.reg), agg.history.Concat(new [] { (agg.reg, gOp) }).ToList()));
 
+var cycles = agg.history.SelectMany(x => x.group.Select(x0 => (cycle: x0.cycle, reg: x.reg)));
+
 var signalStrengths = Enumerable.Range(0, 6).Select(x => x * 40 + 20)
-	.Select(cycle => agg.history.First(x => x.group.Where(x0 => x0.cycle == cycle).Any()).reg * cycle);
+	.Select(c => cycles.First(x => x.cycle == c).reg * c);
 
 Console.WriteLine(signalStrengths.Sum());
 
 // Part 2
-var output = agg.history.SelectMany(x => x.group.Select(x0 => (cycle: x0.cycle, reg: x.reg)))
-	.Aggregate(new System.Text.StringBuilder(), (sb, c) =>
+var output = cycles.Aggregate(new System.Text.StringBuilder(), (sb, c) =>
+{
+	var position = c.cycle % 40;
+	sb.Append(c.reg >= position - 2 && c.reg <= position ? "#" : ".");
+	if (position == 0)
 	{
-		var position = c.cycle % 40;
-		sb.Append(c.reg >= position - 2 && c.reg <= position ? "#" : ".");
-		if (position == 0)
-		{
-			sb.Append("\n");
-		}
-		return sb;
-	});
+		sb.Append("\n");
+	}
+	return sb;
+});
 
 Console.WriteLine(output);
+
+IOp CreateOp(string s)
+{
+	var pair = s.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+	return pair.First() switch
+	{
+		"noop" => new NoOp(),
+		"addx" => new Add(int.Parse(pair.Last())),
+		_ => throw new ArgumentException()
+	};
+}
 
 interface IOp
 {
