@@ -3,15 +3,12 @@ var ops = File.ReadAllLines("data.txt")
 	.Aggregate(new List<IOp>(), (ops, op) =>
 		ops.Concat(new [] { CreateOp(op) }).ToList());
 
-var opGps = ops.SelectMany(x => Enumerable.Range(1, x.Cylces).Select(x0 => x))
-	.Select((x, i) => (op: x, cycle: i + 1))
-	.GroupBy(x => x.op);
+var agg = ops.Aggregate(
+	(reg: 1, history: new List<(int reg, IOp op)>()), (agg, op) =>
+		(op.Operate(agg.reg), agg.history.Concat(new [] { (agg.reg, op) }).ToList()));
 
-var agg = opGps.Aggregate(
-	(reg: 1, history: new List<(int reg, IGrouping<IOp, (IOp op, int cycle)> group)>()), (agg, gOp) =>
-			(gOp.Key.Operate(agg.reg), agg.history.Concat(new [] { (agg.reg, gOp) }).ToList()));
-
-var cycles = agg.history.SelectMany(x => x.group.Select(x0 => (cycle: x0.cycle, reg: x.reg)));
+var cycles = agg.history.SelectMany(x => Enumerable.Range(1, x.op.Cylces).Select(x0 => x))
+	.Select((x, i) => (cycle: i + 1, reg: x.reg));
 
 var signalStrengths = Enumerable.Range(0, 6).Select(x => x * 40 + 20)
 	.Select(c => cycles.First(x => x.cycle == c).reg * c);
