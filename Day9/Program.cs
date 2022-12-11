@@ -50,11 +50,11 @@ static IEnumerable<Position> MoveTail(IEnumerable<Position> nodes)
 
 void Output(IEnumerable<Position> nodes, IEnumerable<Position> positions)
 {
-		var sb = new System.Text.StringBuilder();
-		Display(sb, nodes.ToArray(), positions);
-		Console.Clear();
-		Console.WriteLine(sb);
-		Console.ReadKey();
+	var sb = new System.Text.StringBuilder();
+	Display(sb, nodes.ToArray(), positions);
+	Console.Clear();
+	Console.WriteLine(sb);
+	Console.ReadKey();
 }
 	
 void Display(System.Text.StringBuilder sb, Position[] nodes, IEnumerable<Position> positions)
@@ -79,11 +79,11 @@ void Display(System.Text.StringBuilder sb, Position[] nodes, IEnumerable<Positio
 
 MoveAggregate CreateMove(char c, int iterations) => c switch
 {
-		'R' => new MoveAggregate(new Impulse(1, 0), iterations),
-		'L' => new MoveAggregate(new Impulse(-1, 0), iterations),
-		'U' => new MoveAggregate(new Impulse(0, 1), iterations),
-		'D' => new MoveAggregate(new Impulse(0, -1), iterations),
-		_ => throw new ArgumentException()
+	'R' => new MoveAggregate(new Impulse(1, 0), iterations),
+	'L' => new MoveAggregate(new Impulse(-1, 0), iterations),
+	'U' => new MoveAggregate(new Impulse(0, 1), iterations),
+	'D' => new MoveAggregate(new Impulse(0, -1), iterations),
+	_ => throw new ArgumentException()
 };
 
 record Impulse(int x, int y);
