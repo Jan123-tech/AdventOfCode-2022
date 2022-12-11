@@ -4,11 +4,11 @@ var ops = File.ReadAllLines("data.txt")
 		ops.Concat(new [] { CreateOp(op) }).ToList());
 
 var agg = ops.Aggregate(
-	(reg: 1, history: new List<(int reg, IOp op)>()), (agg, op) =>
-		(op.Operate(agg.reg), agg.history.Concat(new [] { (agg.reg, op) }).ToList()));
+	(reg: 1, history: new List<(int reg, int cycles)>()), (agg, op) =>
+		(op.Operate(agg.reg), agg.history.Concat(new [] { (agg.reg, op.Cycles) }).ToList()));
 
-var cycles = agg.history.SelectMany(x => Enumerable.Range(1, x.op.Cycles).Select(x0 => x))
-	.Select((x, i) => (cycle: i + 1, reg: x.reg));
+var cycles = agg.history.SelectMany(x => Enumerable.Range(1, x.cycles).Select(x0 => x.reg))
+	.Select((reg, i) => (cycle: i + 1, reg));
 
 var signalStrengths = Enumerable.Range(0, 6).Select(x => x * 40 + 20)
 	.Select(c => cycles.First(x => x.cycle == c).reg * c);
