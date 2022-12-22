@@ -21,9 +21,7 @@ var output = cycles.Aggregate(new System.Text.StringBuilder(), (sb, c) =>
 	var position = c.cycle % 40;
 	sb.Append(c.reg >= position - 2 && c.reg <= position ? "#" : ".");
 	if (position == 0)
-	{
 		sb.Append("\n");
-	}
 	return sb;
 });
 
