@@ -1,114 +1,83 @@
-﻿var rows = File.ReadAllLines("data.txt");
+var test = 1 == 0;
+var file = $"data{(test ? ".test" : string.Empty)}.txt";
+var xS = test ? 5 : 68;
+var yS = test ? 2 : 20;
+
+var rows = File.ReadAllLines(file);
 var map = ParseMap(rows);
 
-IList<Path> Step(IList<Path> paths, Path path, PathPoint cell)
+var visited = new HashSet<Position>
 {
-	var cellValue = map[cell.x, cell.y];
+    new(xS, yS)
+};
 
-	if (cellValue == 'E')
-	{
-		path.IsComplete = true;
-		return paths;
-	}
+int count = 0;
+var queue = new Queue<Path>();
+queue.Enqueue(new Path(new Position(xS, yS), 0, null));
 
-	path.points.Add(cell);
+Path? end = null;
 
-  var nextPoints0 = new List<PathPoint>
-  {
-    new (cell.x + 1, cell.y, '>'), new (cell.x - 1, cell.y, '<'),
-    new (cell.x, cell.y + 1, 'v'), new (cell.x, cell.y - 1, '^')
-  };
-
-	var nextPoints = nextPoints0;
-  var nextPoints1 = nextPoints.Where(x => x.x >= 0 && x.x < map.GetLength(0) && x.y >= 0 && x.y < map.GetLength(1));
-  var nextPoints2 = nextPoints1.Where(x => !path.visited.Contains(x));
-	var nextPoints3 = nextPoints2.Where(x =>
-	{
-		var newCellValue = map[x.x, x.y];
-
-		var isS = cellValue == 'S' && path.points.Count() == 1;
-		var isok = Math.Abs(newCellValue - cellValue) < 2;
-		var isEnd = cellValue == 'z' && newCellValue == 'E';
-		
-		return   isok || isEnd || isS;
-	})
-  .ToList();
-
-	var pathPoints = path.points.Select(x => new PathPoint(x.x, x.y, x.direction)).ToList();
-
-  for (int i = 0; i < nextPoints3.Count; i++)
-	{
-		if (i > 0)
-		{
-			//return paths;
-		}
-    var p = nextPoints3[i];
-
-		Path path0 = path;
-
-		if (i > 0)
-		{
-			var newPath = new Path(pathPoints.Select(x => new PathPoint(x.x, x.y, x.direction)).ToList(),
-				new HashSet<PathPoint>());
-			paths.Add(newPath);
-			path0 = newPath;
-		}
-
-		if (path0.points.Count() > 0)
-		{
-			var last = path0.points[path0.points.Count() - 1];
-			path0.points[path0.points.Count() - 1] = new PathPoint(last.x, last.y, p.direction);
-		}
-
-		Step(paths, path0, p);
-  }
-
-  return paths;
-}
-
-var origPath = new Path(new List<PathPoint>(), new HashSet<PathPoint>());
-var paths = Step(new List<Path>() { origPath },
-	origPath,
-	new PathPoint(0, 20, 'S'));
-
-
-
-var complete = paths.Where(p => p.IsComplete).GroupBy(x => x.points.Count()).OrderBy(x => x.Key)
-.Take(1)
-	.SelectMany(x => x);
-var path = complete.FirstOrDefault();
-
-Console.WriteLine(path?.points.Count());
-
-foreach (var p in complete)
+while (queue.Any())
 {
-	foreach (var x in p.points)
-	{
-		Console.Write(map[x.x, x.y]);
-	}
+    count++;
+    var item = queue.Dequeue();
+    var cellValue = map[item.Position.X, item.Position.Y];
 
-	Console.Write("\n");
-}
+    Console.WriteLine($"{count}: Char: {cellValue} Count: {item.Step} Point: {item.Position}");
 
-foreach (var c in complete)
-{
-Output(c);
-Console.Write("\n");
-}
-
-void Output(Path? path)
-{
-  for (var i = 0; i < map.GetLength(1); i++)
-  {
-    for (var j = 0; j < map.GetLength(0); j++)
+    if (cellValue == 'a')
     {
-			var pathPoint = path?.points.FirstOrDefault(p => p.x == j && p.y == i)?.direction;
-
-			var c = pathPoint ?? ((map[j,i] == 'E') ? 'E' : '.');
-      Console.Write(c);
+        end = item;
+        break;
     }
-    Console.Write("\n");
-  }
+
+    var nextPoints0 = new List<Position>
+    {
+        new (item.Position.X + 1, item.Position.Y), new (item.Position.X - 1, item.Position.Y),
+        new (item.Position.X, item.Position.Y + 1), new (item.Position.X, item.Position.Y - 1)
+    };
+
+    var nextPoints1 = nextPoints0.Where(x => x.X >= 0 && x.X < map.GetLength(0) && x.Y >= 0 && x.Y < map.GetLength(1));
+    var nextPoints2 = nextPoints1.Where(x => !visited.Contains(x));
+    var nextPoints3 = nextPoints2.Where(x =>
+    {
+        var newCellValue = map[x.X, x.Y];
+        var isDown = newCellValue == cellValue - 1;
+        var isSameOrUp = newCellValue >= cellValue;
+        return isDown || (isSameOrUp && cellValue != 'E') || (cellValue == 'E' && newCellValue == 'z');
+    });
+
+    foreach (var i in nextPoints3)
+    {
+        visited.Add(i);
+        queue.Enqueue(new (i, item.Step + 1, item));
+    }
+}
+
+
+
+var endPath = new HashSet<Position>();
+var tempPath = end!;
+while (tempPath.Parent != null)
+{
+    endPath.Add(tempPath.Position);
+    tempPath = tempPath.Parent;
+}
+Output();
+
+void Output()
+{
+    for (var i = 0; i < map.GetLength(1); i++)
+    {
+        for (var j = 0; j < map.GetLength(0); j++)
+        {
+            var c = ((map[j,i] == 'E') ? 'E' : map[j,i]);
+            if (endPath.Contains(new Position(j, i)))
+             c = '0';
+            Console.Write(c);
+        }
+        Console.Write("\n");
+    }
 }
 
 static char[,] ParseMap(string[] rows)
@@ -128,9 +97,7 @@ static char[,] ParseMap(string[] rows)
   return map;
 }
 
+record Position(int X, int Y);
 
-record Path(IList<PathPoint> points, HashSet<PathPoint> visited)
-{
-	public bool IsComplete { get; set; } = false;
-}
-record PathPoint(int x, int y, char direction);
+record Path(Position Position, int Step, Path? Parent);
+
