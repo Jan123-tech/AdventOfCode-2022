@@ -1,13 +1,23 @@
-﻿var map0 = File.ReadAllLines("data.txt")
+﻿using System.Diagnostics;
+
+var part1 = false;
+
+var map0 = File.ReadAllLines("data.txt")
 	.TakeWhile(x => !string.IsNullOrEmpty(x));
 
 var maxLength = map0.Select(x => x.Length).Max();
+var cellSize = maxLength/3;
+
+Console.WriteLine($"Max width: {maxLength}");
+Console.WriteLine($"Cell size: {cellSize}");
 
 var map1 = map0.Select(x => x.Length == maxLength ? x : x.PadRight(maxLength, ' ')).ToList();
 
-var points = new char[maxLength, map1.Count()];
+var points = new char[maxLength, map1.Count];
 
-for (var r = 0; r < map1.Count(); r++)
+Console.WriteLine($"Max height: {map1.Count}");
+
+for (var r = 0; r < map1.Count; r++)
 	for (var c = 0; c < maxLength; c++)
 		points[c, r] = map1[r][c];
 
@@ -19,7 +29,7 @@ var directions0 = File.ReadAllLines("data.txt")
 var directions = new List<(char direction, int count)>();
 
 void CreateDirection(string text) => 
-	directions.Add((text.First(), int.Parse(new String(text.Skip(1).ToArray()))));
+	directions.Add((text.First(), int.Parse(new string([.. text.Skip(1)]))));
 
 var sb = new System.Text.StringBuilder();
 
@@ -41,17 +51,30 @@ var position = new Point(map1[0].Select((x, i) => (x, i)).First(x => x.x != ' ')
 var dir = dirV.Last();
 points[position.x, position.y] = '>';
 
-foreach (var d in directions)
+foreach (var (direction, count) in directions)
 {
-	dir = GetNextDirection(dir, d.direction, dirV);
+	dir = GetNextDirection(dir, direction, dirV);
 
-	for (var i = 0; i < d.count; i ++)
+	for (var i = 0; i < count; i ++)
 	{
-		var pointPeek = GetNextPoint(position, dir, d.count);
-		if (points[pointPeek.x, pointPeek.y] == '#')
-			continue;
+		var positionPeek = GetNextPoint(position, dir, count);
+		
+		try
+		{
+			if (points[positionPeek.point.x, positionPeek.point.y] == '#')
+			{
+				continue;
+			}
+		}
+		catch
+		{
+			Console.WriteLine(position);
+			Console.WriteLine(dir);
+			Console.WriteLine(positionPeek);
+		}
 
-		position = pointPeek;
+		position = positionPeek.point;
+		dir = positionPeek.dir;
 		points[position.x, position.y] = dir.x == 1 ? '>' : dir.x == -1 ? '<' : dir.y == 1 ? 'v' : '^';
 	}
 }
@@ -69,40 +92,58 @@ Point GetNextDirection(Point current, char d, Point[] dirVs)
 	return dirVs[newIndex];
 }
 
-Point GetNextPoint(Point current, Point dir, int count)
+(Point point, Point dir) GetNextPoint(Point current, Point dir, int count)
 {
-	var newPoint = GetNewPoint(current, dir, points!);
+	var newPoint = new Point(current.x + dir.x, current.y + dir.y);
 
-	while (points![newPoint.x, newPoint.y] == ' ')
+	var xOffset = current.x % cellSize;
+	var yOffset = current.y % cellSize;
+
+	var point = part1 ?
+		newPoint switch
+		{
+			(<100, -1) => (new Point(newPoint.x, 149), dir),
+			(_, -1) => (new Point(newPoint.x, 49), dir),
+			(150, _) => (new Point(50, newPoint.y), dir),
+			(>=100, 50) when dir.y == 1 => (new Point(newPoint.x, 0), dir),
+			(100, >= 50 and <100) => (new Point(50, newPoint.y), dir),
+			(100, >=100) => (new Point(0, newPoint.y), dir),
+			(>=50, 150) when dir.y == 1 => (new Point(newPoint.x, 0), dir),
+			(50, >=150) => (new Point(0, newPoint.y), dir),
+			(_, 200) => (new Point(newPoint.x, 100), dir),
+			(-1, >=150) => (new Point(49, newPoint.y), dir),
+			(-1, _) => (new Point(99, newPoint.y), dir),
+			(<50, 99) when dir.y == -1 => (new Point(newPoint.x, 199), dir),
+			(49, >=50 and <100) => (new Point(99, newPoint.y), dir),
+			(49, <50) => (new Point(149, newPoint.y), dir),
+			_ => (newPoint, dir)
+		} :
+		newPoint switch
+		{
+			(<100, -1) => (new Point(0, 150 + xOffset), new Point(1, 0)),
+			(_, -1) => (new Point(0 + xOffset, 199), new Point(0, -1)),
+			(150, _) => (new Point(99, 149 - yOffset), new Point(-1, 0)),
+			(>=100, 50) when dir.y == 1 => (new Point(99, 50 + xOffset), new Point(-1, 0)),
+			(100, >= 50 and <100) => (new Point(100 + yOffset, 49), new Point(0, -1)),
+			(100, >=100) => (new Point(149, 49 - yOffset), new Point(-1, 0)),
+			(>=50, 150) when dir.y == 1 => (new Point(49, 150 + xOffset), new Point(-1, 0)),
+			(50, >=150) => (new Point(50 + yOffset, 149), new Point(0, -1)),
+			(_, 200) => (new Point(100 + xOffset, 0), new Point(0, 1)),
+			(-1, >=150) => (new Point(50 + yOffset, 0), new Point(0, 1)),
+			(-1, _) => (new Point(50, 49 - yOffset), new Point(1, 0)),
+			(<50, 99) when dir.y == -1 => (new Point(50, 50 + xOffset), new Point(1, 0)),
+			(49, >=50 and <100) => (new Point(0 + yOffset, 100), new Point(0, 1)),
+			(49, <50) => (new Point(0, 149 - yOffset), new Point(1, 0)),
+			_ => (newPoint, dir)
+		};
+
+	if (point.Item1.x >= 100 && point.Item1.y > 50)
 	{
-		newPoint = GetNewPoint(newPoint, dir, points);
+		Console.WriteLine($"{newPoint} Jump to: {point.Item1} New Dir: {point.Item2}");
+		throw new Exception();
 	}
 
-  return newPoint!;
-
-	static Point GetNewPoint(Point current, Point dir, char[,] points)
-  {
-    var newPoint = new Point(current.x + dir.x, current.y + dir.y);
-		newPoint = LimitAxises(newPoint, dir, points);
-		return newPoint;
-  }
-
-	static Point LimitAxises(Point current, Point dir, char[,] points)
-	{
-		var x = LimitAxis(current.x, dir.x, points, 0);
-		var y = LimitAxis(current.y, dir.y, points, 1);
-		return new Point(x, y);
-	}
-
-  static int LimitAxis(int value, int dir, char[,] points, int dim)
-  {
-		var maxIndex = points.GetLength(dim) - 1;
-    if (value > maxIndex)
-      value = 0;
-    else if (value < 0)
-      value = maxIndex;
-    return value;
-  }
+	return point;
 }
 
 var bufferService = new BufferService();
