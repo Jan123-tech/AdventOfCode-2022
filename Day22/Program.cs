@@ -58,20 +58,9 @@ foreach (var (direction, count) in directions)
 	for (var i = 0; i < count; i ++)
 	{
 		var positionPeek = GetNextPoint(position, dir, count);
-		
-		try
-		{
-			if (points[positionPeek.point.x, positionPeek.point.y] == '#')
-			{
-				continue;
-			}
-		}
-		catch
-		{
-			Console.WriteLine(position);
-			Console.WriteLine(dir);
-			Console.WriteLine(positionPeek);
-		}
+
+		if (points[positionPeek.point.x, positionPeek.point.y] == '#')
+			continue;
 
 		position = positionPeek.point;
 		dir = positionPeek.dir;
@@ -99,7 +88,7 @@ Point GetNextDirection(Point current, char d, Point[] dirVs)
 	var xOffset = current.x % cellSize;
 	var yOffset = current.y % cellSize;
 
-	var point = part1 ?
+	return part1 ?
 		newPoint switch
 		{
 			(<100, -1) => (new Point(newPoint.x, 149), dir),
@@ -136,14 +125,6 @@ Point GetNextDirection(Point current, char d, Point[] dirVs)
 			(49, <50) => (new Point(0, 149 - yOffset), new Point(1, 0)),
 			_ => (newPoint, dir)
 		};
-
-	if (point.Item1.x >= 100 && point.Item1.y > 50)
-	{
-		Console.WriteLine($"{newPoint} Jump to: {point.Item1} New Dir: {point.Item2}");
-		throw new Exception();
-	}
-
-	return point;
 }
 
 var bufferService = new BufferService();
